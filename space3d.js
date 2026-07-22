@@ -939,8 +939,12 @@ class SpaceEngine {
                 });
             }
 
-            // Animate individual nodes based on their type
-            this.networkNodes.forEach(node => {
+            // Animate individual nodes based on their type & sinusoidal bobbing motion
+            this.networkNodes.forEach((node, idx) => {
+                if (node.basePosY === undefined) node.basePosY = node.position.y;
+                const bobOffset = Math.sin(time * 2.0 + idx * 0.4) * 0.04;
+                node.position.y = node.basePosY + bobOffset;
+
                 if (node.nodeRole === 'ingress') {
                     node.rotation.x += delta * 0.6;
                     node.rotation.y += delta * 0.3;
