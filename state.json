@@ -1,0 +1,323 @@
+{
+  "systemState": {
+    "status": "nominal",
+    "nodes": 24,
+    "latency": 50,
+    "throughput": 1295,
+    "activeIncident": null,
+    "activeNode": null,
+    "cost": 2500,
+    "waitingApproval": false,
+    "approvalDetails": null,
+    "speed": 1,
+    "costLimit": 2500,
+    "nodeMetrics": [
+      {
+        "idx": 0,
+        "cpu": 12,
+        "mem": 69,
+        "status": "healthy"
+      },
+      {
+        "idx": 1,
+        "cpu": 13,
+        "mem": 70,
+        "status": "healthy"
+      },
+      {
+        "idx": 2,
+        "cpu": 14,
+        "mem": 71,
+        "status": "healthy"
+      },
+      {
+        "idx": 3,
+        "cpu": 15,
+        "mem": 72,
+        "status": "healthy"
+      },
+      {
+        "idx": 4,
+        "cpu": 16,
+        "mem": 73,
+        "status": "healthy"
+      },
+      {
+        "idx": 5,
+        "cpu": 17,
+        "mem": 74,
+        "status": "healthy"
+      },
+      {
+        "idx": 6,
+        "cpu": 18,
+        "mem": 75,
+        "status": "healthy"
+      },
+      {
+        "idx": 7,
+        "cpu": 19,
+        "mem": 76,
+        "status": "healthy"
+      },
+      {
+        "idx": 8,
+        "cpu": 20,
+        "mem": 77,
+        "status": "healthy"
+      },
+      {
+        "idx": 9,
+        "cpu": 21,
+        "mem": 78,
+        "status": "healthy"
+      },
+      {
+        "idx": 10,
+        "cpu": 22,
+        "mem": 79,
+        "status": "healthy"
+      },
+      {
+        "idx": 11,
+        "cpu": 23,
+        "mem": 80,
+        "status": "healthy"
+      },
+      {
+        "idx": 12,
+        "cpu": 24,
+        "mem": 81,
+        "status": "healthy"
+      },
+      {
+        "idx": 13,
+        "cpu": 25,
+        "mem": 82,
+        "status": "healthy"
+      },
+      {
+        "idx": 14,
+        "cpu": 26,
+        "mem": 83,
+        "status": "healthy"
+      },
+      {
+        "idx": 15,
+        "cpu": 12,
+        "mem": 84,
+        "status": "healthy"
+      },
+      {
+        "idx": 16,
+        "cpu": 13,
+        "mem": 85,
+        "status": "healthy"
+      },
+      {
+        "idx": 17,
+        "cpu": 14,
+        "mem": 86,
+        "status": "healthy"
+      },
+      {
+        "idx": 18,
+        "cpu": 15,
+        "mem": 87,
+        "status": "healthy"
+      },
+      {
+        "idx": 19,
+        "cpu": 16,
+        "mem": 88,
+        "status": "healthy"
+      },
+      {
+        "idx": 20,
+        "cpu": 17,
+        "mem": 69,
+        "status": "healthy"
+      },
+      {
+        "idx": 21,
+        "cpu": 18,
+        "mem": 70,
+        "status": "healthy"
+      },
+      {
+        "idx": 22,
+        "cpu": 19,
+        "mem": 71,
+        "status": "healthy"
+      },
+      {
+        "idx": 23,
+        "cpu": 20,
+        "mem": 72,
+        "status": "healthy"
+      },
+      {
+        "idx": 24,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 25,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 26,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 27,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 28,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 29,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 30,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 31,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 32,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 33,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 34,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 35,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 36,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 37,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 38,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 39,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 40,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 41,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 42,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 43,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 44,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 45,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 46,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      },
+      {
+        "idx": 47,
+        "cpu": 0,
+        "mem": 0,
+        "status": "offline"
+      }
+    ],
+    "blastRadius": []
+  },
+  "incidentHistory": [
+    {
+      "id": 1780727629516,
+      "type": "db",
+      "timestamp": "2026-06-06T06:33:49.516Z",
+      "status": "resolved",
+      "actionApproved": false,
+      "resolvedAt": "2026-06-06T06:33:55.365Z"
+    },
+    {
+      "id": 1780741981807,
+      "type": "ddos",
+      "timestamp": "2026-06-06T10:33:01Z",
+      "status": "active",
+      "actionApproved": null
+    }
+  ]
+}

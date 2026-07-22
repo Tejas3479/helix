@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Helix Quantum - Autonomous Cloud Operations & SRE Command Center. Multi-agent visual portal leveraging WebGL and real-time telemetry.">
+    <!-- Browser Error Capture Pipeline -->
+    <script>
+        window.onerror = function(message, source, lineno, colno, error) {
+            const statusEl = document.getElementById('loader-status');
+            if (statusEl) {
+                statusEl.innerHTML = '';
+                const span = document.createElement('span');
+                span.style.cssText = 'color: #ff007f; font-weight: bold; font-family: monospace;';
+                span.textContent = '[FATAL] ' + message + ' (' + lineno + ':' + colno + ')';
+                statusEl.appendChild(span);
+            }
+            console.error("Dashboard Error: ", message, " at ", source, ":", lineno);
+        };
+    </script>
+    <title>Helix Quantum - Autonomous DevOps & SRE Dashboard</title>
+    <!-- Favicon (Inline SVG Shield) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Main stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Immersive Loader Screen -->
+    <div id="loader">
+        <div class="loader-content">
+            <div class="loader-ring">
+                <div class="loader-ring-inner"></div>
+                <div class="loader-glyph">🛡️</div>
+            </div>
+            <h1 class="loader-title" id="loader-title">HELIX QUANTUM</h1>
+            <div class="loader-bar">
+                <div class="loader-progress" id="loader-progress"></div>
+            </div>
+            <p class="loader-status" id="loader-status">BOOTING CORE TELEMETRY...</p>
+        </div>
+    </div>
+
+    <!-- WebGL Canvas for Three.js -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Tooltip HUD Overlay -->
+    <div id="webgl-tooltip" class="webgl-tooltip hidden"></div>
+
+    <!-- Zoom HUD Back button -->
+    <button id="btn-exit-explode" class="control-btn hidden" style="position: fixed; bottom: 2.5rem; left: 50%; transform: translateX(-50%); z-index: 100; font-family: var(--font-heading); font-size: 0.65rem; border: 1px solid var(--accent-cyan); background: rgba(2,2,8,0.85); cursor: pointer; padding: 0.75rem 1.5rem; border-radius: 4px; color: var(--accent-cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);">
+        <span>BACK TO CLUSTER</span>
+    </button>
+
+    <!-- UI Overlay Header / Navigation -->
+    <header id="hud-header">
+        <div class="logo-area">
+            <span class="pulse-dot"></span>
+            <span class="system-tag" id="system-status-tag">SYSTEM STATUS: NOMINAL</span>
+        </div>
+        <nav class="hud-nav">
+            <a href="#bridge" class="nav-link active" data-section="0">01. COMMAND BRIDGE</a>
+            <a href="#agents" class="nav-link" data-section="1">02. AGENT COLLAB</a>
+            <a href="#tuner" class="nav-link" data-section="2">03. RISK TUNER</a>
+            <a href="#incidents" class="nav-link" data-section="3">04. INCIDENTS</a>
+        </nav>
+        <!-- Audio and Dimension HUD Controls -->
+        <div class="quick-controls">
+            <button id="audio-toggle" class="control-btn" title="Toggle Sound" aria-label="Toggle Dashboard Audio Synthesizer">
+                <div class="audio-equalizer">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+                <span class="btn-text">MUTED</span>
+            </button>
+            <div class="fps-counter" id="fps-display">FPS: 00</div>
+        </div>
+    </header>
+
+    <!-- Telemetry Sidebar (Left) -->
+    <aside id="telemetry-sidebar">
+        <div class="sidebar-header">
+            <h2>TELEMETRY MATRIX</h2>
+            <div class="hud-grid-deco"></div>
+        </div>
+        <div class="telemetry-group">
+            <div class="telemetry-item">
+                <span class="label">NODE AVAILABILITY</span>
+                <span class="value" id="tele_coords">NODE: 24/24</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="label">TRAFFIC LATENCY</span>
+                <span class="value cyan" id="tele_flux">48 ms</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="label">THROUGHPUT</span>
+                <span class="value" id="tele_particles">1,250 req/s</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="label">THREAT STATUS</span>
+                <span class="value green" id="tele_dimension">NOMINAL</span>
+            </div>
+        </div>
+        
+        <div class="system-diagnostic">
+            <h3>ACTIVE AGENTS</h3>
+            <div class="terminal-mini" id="active-agents-mini">
+                <p>&gt; Orchestrator_Core: <span class="cyan">ONLINE</span></p>
+                <p>&gt; Sentry-01 (Monitor): <span class="green">NOMINAL</span></p>
+                <p>&gt; Vanguard-01 (Sec): <span class="green">NOMINAL</span></p>
+                <p>&gt; Tecton-01 (Scale): <span class="green">NOMINAL</span></p>
+            </div>
+        </div>
+        
+        <!-- Pinned Telemetry Cockpit -->
+        <div class="pinned-charts-section" id="pinned-charts-section" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.85rem; margin-top: 0.5rem;">
+            <h3 style="font-family: var(--font-heading); font-size: 0.65rem; color: var(--text-secondary); margin-bottom: 0.5rem; letter-spacing: 0.05rem;">PINNED HUD METRICS</h3>
+            <div id="pinned-charts-container" class="pinned-charts-container" style="display:flex; flex-direction:column; gap:0.5rem; max-height: 180px; overflow-y:auto;">
+                <p style="font-size:0.6rem; color: var(--text-secondary); font-style:italic;">No pinned widgets. Click 'PIN TO HUD' in alert bubbles.</p>
+            </div>
+        </div>
+        
+        <div class="sidebar-footer">
+            <div class="bar-progress-container">
+                <div class="bar-progress" id="tele-bar" style="width: 100%;"></div>
+            </div>
+            <span class="footer-tag">HELIX PROTOCOL v4.9.1</span>
+        </div>
+    </aside>
+
+    <!-- Scroll Container for Sections -->
+    <main id="scroll-wrapper">
+        <!-- Section 1: Command Bridge (Hero) -->
+        <section id="bridge" class="hud-section active">
+            <div class="section-content">
+                <span class="section-badge">COMMAND BRIDGE // 01</span>
+                <h1 class="main-title glitched" data-text="HELIX ORCHESTRATOR">HELIX ORCHESTRATOR</h1>
+                <p class="tagline">Autonomous multi-agent cloud infrastructure management. Command sub-agents in natural language or simulate server incident resolutions under real-time WebGL workloads.</p>
+                
+                <!-- Prompt Terminal Input -->
+                <div class="prompt-box glass-card">
+                    <form id="agent-command-form" class="prompt-form">
+                        <input type="text" id="agent-prompt" placeholder="Ask Orchestrator (e.g. 'run scale test', 'audit node clusters')..." required autocomplete="off" aria-label="Agent Command Input">
+                        <button type="submit" class="btn btn-primary" id="btn-prompt-send" aria-label="Submit Prompt Command">
+                            <span>EXECUTE COMMAND</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Virtual Host Cluster LED Grid -->
+                <div class="node-grid-card glass-card">
+                    <div class="node-grid-header">
+                        <span class="node-grid-title">VIRTUAL HOST CLUSTER TELEMETRY</span>
+                        <span class="node-grid-count" id="active-nodes-counter">ACTIVE: 24/24</span>
+                    </div>
+                    <div id="node-cluster-grid" class="node-cluster-grid">
+                        <!-- Nodes populated dynamically by app.js -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Agent Collaboration Pipeline (Chat Hub) -->
+        <section id="agents" class="hud-section">
+            <div class="section-content glass-card wide-content">
+                <span class="section-badge">PIPELINE NETWORK // 02</span>
+                <h2>AGENT COLLABORATION WAR ROOM</h2>
+                
+                <div class="war-room-split">
+                    <!-- Left: Ticket Metadata & Policy Config -->
+                    <div class="war-room-panel metadata-pane">
+                        <div class="left-pane-tabs">
+                            <button class="tab-btn active" id="tab-ticket-info">TICKET INFO</button>
+                            <button class="tab-btn" id="tab-guardrail-rules">GUARDRAIL CONFIG</button>
+                        </div>
+                        <div class="tab-content-container" style="flex:1; overflow-y:auto; margin-top:0.5rem;">
+                            <div class="tab-content" id="content-ticket-info">
+                                <h3 class="pane-title">ACTIVE INCIDENT TICKET</h3>
+                                <div class="ticket-fields">
+                                    <div class="ticket-field">
+                                        <span class="lbl">INCIDENT ID:</span>
+                                        <span class="val cyan" id="ticket-id">N/A</span>
+                                    </div>
+                                    <div class="ticket-field">
+                                        <span class="lbl">SEVERITY:</span>
+                                        <span class="val green-text" id="ticket-severity">NOMINAL</span>
+                                    </div>
+                                    <div class="ticket-field">
+                                        <span class="lbl">TRIGGER ALERT:</span>
+                                        <span class="val" id="ticket-alert">None</span>
+                                    </div>
+                                    <div class="ticket-field">
+                                        <span class="lbl">LEAD SRE:</span>
+                                        <span class="val">Orchestrator-01</span>
+                                    </div>
+                                    <div class="ticket-field">
+                                        <span class="lbl">BLAST RADIUS:</span>
+                                        <span class="val" id="ticket-blast">0 Nodes</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-content hidden" id="content-guardrail-rules">
+                                <h3 class="pane-title">AGENT RUNTIME POLICIES</h3>
+                                <div class="policy-builder-form">
+                                    <div class="policy-field">
+                                        <label for="policy-agent-select">SELECT AGENT:</label>
+                                        <select id="policy-agent-select">
+                                            <option value="tecton">Tecton-01 (Scale)</option>
+                                            <option value="vanguard">Vanguard-01 (Security)</option>
+                                            <option value="sentry">Sentry-01 (Monitor)</option>
+                                        </select>
+                                    </div>
+                                    <div class="policy-field">
+                                        <label for="policy-rules-input">SYSTEM RULES (ENGLISH):</label>
+                                        <textarea id="policy-rules-input" rows="3" placeholder="If latency > 300ms, request rate-limiting before scaling."></textarea>
+                                    </div>
+                                    <div class="policy-field tools-checklist">
+                                        <span class="lbl">TOOL PERMISSIONS:</span>
+                                        <label><input type="checkbox" checked disabled> Read Telemetry</label>
+                                        <label><input type="checkbox" id="chk-allow-firewall" checked> Write Firewalls</label>
+                                        <label><input type="checkbox" id="chk-require-pin" checked> Write Scale (Requires PIN)</label>
+                                    </div>
+                                    <div class="policy-field">
+                                        <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;"><input type="checkbox" id="chk-hitl-gate" checked> Enable HITL Gate</label>
+                                    </div>
+                                    <button class="control-btn" id="btn-deploy-policy" style="width:100%; justify-content:center; border-color:var(--accent-purple); cursor:pointer;">DEPLOY POLICY</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Center: Agent Collaboration Hub (Flowchart & Chat) -->
+                    <div class="war-room-panel center-pane">
+                        <!-- Helix Agent Flowchart Panel -->
+                        <div id="helix-agent-flowchart" class="helix-flowchart-container">
+                            <div class="flowchart-step" id="flowchart-detect" data-step="detect">
+                                <span class="flowchart-icon">🔍</span>
+                                <span class="flowchart-label">Detect</span>
+                            </div>
+                            <div class="flowchart-arrow">➔</div>
+                            <div class="flowchart-step" id="flowchart-triage" data-step="triage">
+                                <span class="flowchart-icon">⚖️</span>
+                                <span class="flowchart-label">Triage</span>
+                            </div>
+                            <div class="flowchart-arrow">➔</div>
+                            <div class="flowchart-step" id="flowchart-rca" data-step="rca">
+                                <span class="flowchart-icon">🔬</span>
+                                <span class="flowchart-label">RCA Audit</span>
+                            </div>
+                            <div class="flowchart-arrow">➔</div>
+                            <div class="flowchart-step" id="flowchart-proposal" data-step="proposal">
+                                <span class="flowchart-icon">📋</span>
+                                <span class="flowchart-label">Proposal</span>
+                            </div>
+                            <div class="flowchart-arrow">➔</div>
+                            <div class="flowchart-step" id="flowchart-hitl" data-step="hitl">
+                                <span class="flowchart-icon">👤</span>
+                                <span class="flowchart-label">HITL Gate</span>
+                            </div>
+                            <div class="flowchart-arrow">➔</div>
+                            <div class="flowchart-step" id="flowchart-remediate" data-step="remediate">
+                                <span class="flowchart-icon">⚡</span>
+                                <span class="flowchart-label">Remediate</span>
+                            </div>
+                        </div>
+
+                        <!-- Live scrolling agent pipeline chat -->
+                        <div class="agent-chat-container" style="flex:1; min-height:0; margin-top:0.5rem;">
+                            <div class="agent-chat-feed" id="agent-chat-feed">
+                                <div class="chat-placeholder">
+                                    <span class="pulse-dot"></span>
+                                    <p>Standing by. Active telemetry streams nominal. Select an incident simulation in Section 04 to initiate agent playbooks.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Live Terminal Command Log -->
+                    <div class="war-room-panel terminal-pane">
+                        <div id="terminal-output" class="terminal-output" style="height:100%; border:none; margin:0; box-shadow:none; display:flex; flex-direction:column; background:transparent;">
+                            <div class="terminal-header">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                                <span class="terminal-title">TERMINAL // AGENT_COMMAND_LOG</span>
+                            </div>
+                            <div class="terminal-body" id="terminal-body" style="flex:1; overflow-y:auto; max-height:none; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.05); padding:0.5rem; border-radius:4px; margin-top:0.4rem; font-family:monospace; font-size:0.6rem;">
+                                <p>&gt; System monitoring channels verified...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Risk Tuner (Calibration) -->
+        <section id="tuner" class="hud-section">
+            <div class="section-content glass-card">
+                <span class="section-badge">CALIBRATION PANEL // 03</span>
+                <h2>OPERATIONAL RISK TUNER</h2>
+                <p class="description">Calibrate core cluster operating parameters. System adjustments update the physical scale limits and cost bounds of the underlying nodes.</p>
+                
+                <div class="engine-sliders">
+                    <div class="slider-control">
+                        <div class="slider-info">
+                            <span class="slider-label">AUTONOMY BOUND (AUTO-HEAL SPEED)</span>
+                            <span class="slider-val" id="val-speed">1.0x</span>
+                        </div>
+                        <input type="range" id="slider-speed" min="0.5" max="3.0" step="0.5" value="1.0">
+                    </div>
+                    
+                    <div class="slider-control">
+                        <div class="slider-info">
+                            <span class="slider-label">RISK TOLERANCE (CLUSTER CAP)</span>
+                            <span class="slider-val" id="val-particles">24 Nodes</span>
+                        </div>
+                        <input type="range" id="slider-particles" min="12" max="64" step="4" value="24">
+                    </div>
+
+                    <div class="slider-control">
+                        <div class="slider-info">
+                            <span class="slider-label">BUDGET BOUND (MAX MONTHLY COST)</span>
+                            <span class="slider-val" id="val-noise">$2,500</span>
+                        </div>
+                        <input type="range" id="slider-noise" min="1000" max="6000" step="500" value="2500">
+                    </div>
+                </div>
+                
+                <div class="core-metrics">
+                    <div class="metric-box">
+                        <span class="metric-num" id="metric-fps">60</span>
+                        <span class="metric-lbl">SYSTEM FPS</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-num" id="metric-nodes-total">24</span>
+                        <span class="metric-lbl">ACTIVE HOSTS</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-num" id="metric-cost-monthly">$2,500</span>
+                        <span class="metric-lbl">PROJECTED COST</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-num" id="metric-latency">48.0ms</span>
+                        <span class="metric-lbl">LATENCY SPARK</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-num" id="sync_percent">99.9%</span>
+                        <span class="metric-lbl">STATE SYNC</span>
+                    </div>
+                </div>
+
+                <!-- Cost Optimization Forecast Graph -->
+                <div class="tuner-chart-container" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem; margin-top: 1rem; width: 100%;">
+                    <span class="node-grid-title" style="font-family: var(--font-heading); font-size: 0.75rem; letter-spacing: 0.08rem; font-weight: bold; color: var(--text-primary); text-transform: uppercase;">COST OPTIMIZATION FORECAST</span>
+                    <canvas id="cost-savings-canvas" width="600" height="130" style="width: 100%; height: 130px; margin-top: 0.75rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 4px; display:block;"></canvas>
+                </div>
+                
+                <!-- Pod Workload Rightsizing Recommendation Table -->
+                <div class="pod-grid-card" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem; margin-top: 1rem; width: 100%;">
+                    <span class="node-grid-title" style="font-family: var(--font-heading); font-size: 0.75rem; letter-spacing: 0.08rem; font-weight: bold; color: var(--text-primary); text-transform: uppercase;">POD WORKLOAD RIGHTSIZING LIMITS</span>
+                    <div class="pod-table" style="margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.04); padding: 0.8rem; border-radius: 6px;">
+                        <div class="pod-row header" style="display: flex; justify-content: space-between; font-weight: bold; font-family: var(--font-heading); font-size: 0.55rem; color: var(--text-secondary); border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.35rem; text-transform: uppercase; letter-spacing:0.05rem;">
+                            <span style="flex:2; text-align:left;">POD NAME</span>
+                            <span style="flex:1; text-align:right;">REQUESTED</span>
+                            <span style="flex:1; text-align:right;">AVG UTIL</span>
+                            <span style="flex:1; text-align:right; color: var(--accent-green);">RECOMMENDED</span>
+                        </div>
+                        <div id="pod-rows-container" style="display:flex; flex-direction:column; gap:0.4rem;">
+                            <!-- Populated dynamically by app.js -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Incidents Chamber (Simulator) -->
+        <section id="incidents" class="hud-section">
+            <div class="section-content glass-card">
+                <span class="section-badge">INCIDENT SIMULATOR // 04</span>
+                <h2>SIMULATION CONTROLLER</h2>
+                <p class="description">Select a critical operations anomaly to deploy automated agent playbooks. Watch the WebGL core and telemetry shift as agents diagnose and deploy hotfixes.</p>
+                
+                <div class="dimension-selector">
+                    <div class="dimension-card" id="sim-ddos" tabindex="0" aria-label="Launch DDoS Attack Anomaly Simulation">
+                        <div class="dim-icon">🛡️</div>
+                        <div class="sim-card-body">
+                            <h3>DDOS ATTACK ANOMALY</h3>
+                            <p>Injects malicious traffic surges. Triggers security alerts and IP block playbooks.</p>
+                        </div>
+                        <span class="dim-status red-border">LAUNCH</span>
+                    </div>
+                    
+                    <div class="dimension-card" id="sim-db" tabindex="0" aria-label="Launch Database Crash Replication Simulation">
+                        <div class="dim-icon">🗄️</div>
+                        <div class="sim-card-body">
+                            <h3>DATABASE CRASH REPLICATION</h3>
+                            <p>Triggers replication loss, database failovers, and hot-standby node provisioning.</p>
+                        </div>
+                        <span class="dim-status yellow-border">LAUNCH</span>
+                    </div>
+                    
+                    <div class="dimension-card" id="sim-cost" tabindex="0" aria-label="Launch Cost Efficiency Audit Simulation">
+                        <div class="dim-icon">💰</div>
+                        <div class="sim-card-body">
+                            <h3>COST EFFICIENCY AUDIT</h3>
+                            <p>Compares cluster capacity against budget limits and deprovisions idle hosts.</p>
+                        </div>
+                        <span class="dim-status green-border">LAUNCH</span>
+                    </div>
+                </div>
+
+
+
+                <!-- Incident History Logs Panel -->
+                <div id="incident-history-container" class="incident-history-container">
+                    <div class="history-header">
+                        <span class="history-title">HISTORICAL INCIDENT DATABASE // LOG_DUMP</span>
+                    </div>
+                    <div class="history-body" id="history-body">
+                        <div class="history-placeholder">Standing by. Querying history log...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Immersive Overlay VFX Elements -->
+    <div id="hud-vfx-vignette"></div>
+    <div id="hud-vfx-scanlines"></div>
+
+    <!-- Dynamic Node Details Card -->
+    <div id="node-details-card" class="node-details-card hidden">
+        <div class="node-details-header">
+            <div class="indicator-title-group">
+                <span class="node-status-indicator" id="node-detail-status-indicator"></span>
+                <h3 id="node-detail-title">HOST NODE DETAILED MATRIX</h3>
+            </div>
+            <button class="node-details-close" id="node-detail-close" aria-label="Close telemetry details">&times;</button>
+        </div>
+        <div class="node-details-body">
+            <div class="node-info-grid">
+                <div class="info-row">
+                    <span class="lbl">HOST IDENTIFIER:</span>
+                    <span class="val cyan" id="node-detail-id">k8s-pod-node-01</span>
+                </div>
+                <div class="info-row">
+                    <span class="lbl">IP ENDPOINT:</span>
+                    <span class="val" id="node-detail-ip">10.244.1.105</span>
+                </div>
+                <div class="info-row">
+                    <span class="lbl">SERVICE ROLE:</span>
+                    <span class="val purple-text" id="node-detail-role">auth-gateway-service</span>
+                </div>
+                <div class="info-row">
+                    <span class="lbl">HEALTH CLUSTER:</span>
+                    <span class="val green-text" id="node-detail-status">HEALTHY (NOMINAL)</span>
+                </div>
+            </div>
+            
+            <div class="node-metric-meter">
+                <div class="meter-info">
+                    <span class="meter-lbl">CPU ALLOCATION</span>
+                    <span class="meter-val" id="node-detail-cpu-val">42%</span>
+                </div>
+                <div class="meter-bar-bg">
+                    <div class="meter-bar-fill" id="node-detail-cpu-fill" style="width: 42%;"></div>
+                </div>
+            </div>
+            
+            <div class="node-metric-meter">
+                <div class="meter-info">
+                    <span class="meter-lbl">MEMORY CAPACITY</span>
+                    <span class="meter-val" id="node-detail-mem-val">68%</span>
+                </div>
+                <div class="meter-bar-bg">
+                    <div class="meter-bar-fill" id="node-detail-mem-fill" style="width: 68%;"></div>
+                </div>
+            </div>
+
+            <!-- Procedural Live Monitor Feed -->
+            <div class="node-live-monitor">
+                <span class="monitor-tag" id="node-detail-monitor-tag">LIVE FEED // SYSTEM_NOMINAL</span>
+                <div class="monitor-screen-container">
+                    <canvas id="node-monitor-canvas" width="330" height="130"></canvas>
+                    <div class="monitor-scanlines"></div>
+                </div>
+            </div>
+            
+            <div class="node-details-log">
+                <span class="log-lbl">LOCAL CONTAINER EVENT LOG:</span>
+                <pre id="node-detail-log-pre">&gt; Container startup success.
+&gt; Core sync loop activated.
+&gt; TCP health probe: NOMINAL.</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Human-In-The-Loop Approval Gate Modal -->
+    <div id="hitl-modal" class="hitl-modal-overlay hidden">
+        <div class="hitl-modal-card glass-card">
+            <div class="hitl-modal-header">
+                <span class="warning-blink">⚠️ WARNING</span>
+                <h3>SRE AUTONOMOUS RESOLUTION GATE</h3>
+            </div>
+            <div class="hitl-modal-body">
+                <p class="hitl-desc">An operations agent is proposing a core infrastructure change. Human approval is required to proceed with this runbook action.</p>
+                <div class="hitl-details">
+                    <div class="detail-row">
+                        <span class="lbl">PROPOSING AGENT:</span>
+                        <span class="val cyan" id="hitl-agent">Tecton-01 (Scale)</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="lbl">PROPOSED ACTION:</span>
+                        <span class="val yellow" id="hitl-action">Scale node limits 24 -> 48 hosts</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="lbl">INCIDENT SOURCE:</span>
+                        <span class="val red" id="hitl-source">DDoS Traffic Infiltration</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hitl-modal-footer">
+                <button class="btn btn-primary" id="btn-hitl-approve" aria-label="Approve Proposed Runbook Action">APPROVE ACTION</button>
+                <button class="btn btn-secondary" id="btn-hitl-deny" aria-label="Deny Proposed Runbook Action">DENY RUNBOOK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security PIN Gate Overlay -->
+    <div id="pin-gate-overlay" class="pin-gate-overlay hidden">
+        <div class="pin-gate-card glass-card">
+            <div class="pin-gate-header">
+                <span class="lock-icon">🔒</span>
+                <h3>HELIX SYSTEM ACCESS CONTROL</h3>
+                <p>An administrator session PIN is required to authorize cloud actions and commands.</p>
+            </div>
+            <form id="pin-gate-form" class="pin-gate-form">
+                <div class="pin-input-wrapper">
+                    <input type="password" id="admin-pin-input" maxlength="4" placeholder="••••" required autocomplete="off">
+                </div>
+                <p id="pin-gate-error" class="pin-gate-error hidden">❌ SECURITY VIOLATION: INVALID PIN</p>
+                <button type="submit" class="btn btn-primary" id="btn-pin-submit">AUTHORIZE COCKPIT</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts (Three.js CDN, GSAP, Space Module, Main App Module) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Three.js Post-Processing Plugins (Shaders first, then Passes) -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/Pass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="space3d.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
