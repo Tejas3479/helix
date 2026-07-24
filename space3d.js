@@ -92,6 +92,7 @@ class SpaceEngine {
         this.hoveredNode = null;
         this.explodedNodeIdx = undefined;
         this.isExplodedMode = false;
+        this.isIntroAnimating = false;
         this.subSpheres = [];
         this.pinnedNodeIdx = null;
         
@@ -792,6 +793,82 @@ class SpaceEngine {
         }
     }
 
+    playIntroFlyIn() {
+        this.isIntroAnimating = true;
+        this.camera.position.set(0, 4, 32);
+        
+        gsap.to(this.camera.position, {
+            x: this.cameraTargets[0].pos.x,
+            y: this.cameraTargets[0].pos.y,
+            z: this.cameraTargets[0].pos.z,
+            duration: 2.2,
+            ease: 'power3.out',
+            onComplete: () => {
+                this.isIntroAnimating = false;
+            }
+        });
+    }
+
+    createParticleBurst(worldPos, colorHex = 0x00f3ff, count = 35) {
+        const burstGeo = new THREE.BufferGeometry();
+        const positions = new Float32Array(count * 3);
+        const velocities = [];
+
+        for (let i = 0; i < count; i++) {
+            positions[i * 3] = worldPos.x;
+            positions[i * 3 + 1] = worldPos.y;
+            positions[i * 3 + 2] = worldPos.z;
+
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.random() * Math.PI;
+            const speed = 0.8 + Math.random() * 1.5;
+
+            velocities.push({
+                vx: Math.sin(phi) * Math.cos(theta) * speed,
+                vy: Math.sin(phi) * Math.sin(theta) * speed,
+                vz: Math.cos(phi) * speed
+            });
+        }
+
+        burstGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        const burstMat = new THREE.PointsMaterial({
+            size: 0.18,
+            color: colorHex,
+            map: this.generateStarTexture(),
+            transparent: true,
+            opacity: 1.0,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+
+        const burstMesh = new THREE.Points(burstGeo, burstMat);
+        this.scene.add(burstMesh);
+
+        const startTime = performance.now();
+        const animateBurst = () => {
+            const elapsed = (performance.now() - startTime) / 1000;
+            if (elapsed > 0.8) {
+                this.scene.remove(burstMesh);
+                burstGeo.dispose();
+                burstMat.dispose();
+                return;
+            }
+
+            const posArr = burstGeo.attributes.position.array;
+            for (let i = 0; i < count; i++) {
+                posArr[i * 3] += velocities[i].vx * 0.016;
+                posArr[i * 3 + 1] += velocities[i].vy * 0.016;
+                posArr[i * 3 + 2] += velocities[i].vz * 0.016;
+            }
+            burstGeo.attributes.position.needsUpdate = true;
+            burstMat.opacity = 1.0 - (elapsed / 0.8);
+
+            requestAnimationFrame(animateBurst);
+        };
+        animateBurst();
+    }
+
     animate() {
         requestAnimationFrame(this.animate.bind(this));
 
@@ -812,7 +889,7 @@ class SpaceEngine {
         const targetCamLook = new THREE.Vector3().copy(this.cameraTargets[currentTargetIndex].look)
             .lerp(this.cameraTargets[nextTargetIndex].look, sectionProgress);
 
-        if (!this.isExplodedMode) {
+        if (!this.isExplodedMode && !this.isIntroAnimating) {
             this.camera.position.x += (targetCamPos.x + this.mouse.x * 1.2 - this.camera.position.x) * 0.06;
             this.camera.position.y += (targetCamPos.y + this.mouse.y * 1.2 - this.camera.position.y) * 0.06;
             this.camera.position.z += (targetCamPos.z - this.camera.position.z) * 0.06;
@@ -1216,6 +1293,10 @@ class SpaceEngine {
             const hitNode = intersects[0].object;
             const nodeIdx = this.networkNodes.indexOf(hitNode);
             if (nodeIdx !== -1) {
+                const worldPos = new THREE.Vector3().copy(hitNode.position).applyMatrix4(this.networkGroup.matrixWorld);
+                const burstColor = (this.systemState === 'anomaly') ? 0xff007f : (this.systemState === 'resolving' ? 0x39ff14 : 0x00f3ff);
+                this.createParticleBurst(worldPos, burstColor, 35);
+
                 if (this.pinnedNodeIdx === nodeIdx) {
                     this.pinnedNodeIdx = null;
                     this.highlightCallPath(this.hoveredNode ? this.networkNodes.indexOf(this.hoveredNode) : null);

@@ -228,6 +228,9 @@ class AppController {
                 setTimeout(() => {
                     this.loader.classList.add('fade-out');
                     this.playBeep(880, 0.15, 0.05);
+                    if (this.space && typeof this.space.playIntroFlyIn === 'function') {
+                        this.space.playIntroFlyIn();
+                    }
                 }, 800);
             } else {
                 gsap.to(this.loaderProgress, { width: progress + '%', duration: 0.04, overwrite: 'auto', ease: 'none' });
@@ -1427,6 +1430,10 @@ class AppController {
         const cmd = this.promptInput.value.trim();
         if (!cmd) return;
         this.promptInput.value = '';
+
+        if (this.space && typeof this.space.createParticleBurst === 'function') {
+            this.space.createParticleBurst(new THREE.Vector3(0, 1.0, 0), 0x00f3ff, 50);
+        }
 
         fetch('/api/command', {
             method: 'POST',
