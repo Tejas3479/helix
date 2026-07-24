@@ -598,6 +598,13 @@ class SreGraphState(TypedDict):
     active_node: Optional[str]
     replanned: bool
 
+# Helper function for Gemini API Key resolution & Model identification (Gemini 3.6 Flash / 3.5 Flash-Lite support)
+def get_gemini_api_key():
+    return os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+
+def get_gemini_model_name():
+    return os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
+
 # Helper function for Gemini calls with timeout & async-safe execution
 async def call_gemini(llm, messages, timeout=8.0, tools=None):
     try:
@@ -648,10 +655,10 @@ async def audit_node(state: SreGraphState) -> SreGraphState:
     system_state["blastRadius"] = calculate_blast_radius(failed_node)
     broadcast_event("state", {"state": system_state})
     
-    gemini_key = os.environ.get("GEMINI_API_KEY")
+    gemini_key = get_gemini_api_key()
     if gemini_key:
         try:
-            llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=gemini_key, temperature=0.0)
+            llm = ChatGoogleGenerativeAI(model=get_gemini_model_name(), google_api_key=gemini_key, temperature=0.0)
             
             # 1. Sentry Agent ReAct Loop for RCA
             diagnostic_tools = [query_k8s_logs, fetch_prometheus_metrics]
@@ -811,10 +818,10 @@ async def mitigate_node(state: SreGraphState) -> SreGraphState:
     
     if user_input == "approve":
         # Mitigation execution using SRE tools
-        gemini_key = os.environ.get("GEMINI_API_KEY")
+        gemini_key = get_gemini_api_key()
         if gemini_key:
             try:
-                llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=gemini_key, temperature=0.0)
+                llm = ChatGoogleGenerativeAI(model=get_gemini_model_name(), google_api_key=gemini_key, temperature=0.0)
                 mitigation_tools = [reboot_pod, apply_rate_limit]
                 tools_map = {t.name: t for t in mitigation_tools}
                 
@@ -1300,10 +1307,10 @@ async def run_agent_reasoning(cmd: str):
                         val_str = f"{128 + (val_seed % 256)}Mi"
 
                 # Conversational Gemini translation if API key is set
-                gemini_key = os.environ.get("GEMINI_API_KEY")
+                gemini_key = get_gemini_api_key()
                 if gemini_key:
                     try:
-                        llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=gemini_key, temperature=0.0)
+                        llm = ChatGoogleGenerativeAI(model=get_gemini_model_name(), google_api_key=gemini_key, temperature=0.0)
                         prompt = f"Translate the following SRE request for pod '{matched_pod}' into a single line PromQL query: '{cmd}'. Only output the raw PromQL query, no markdown, no backticks, no explanations."
                         response = await asyncio.wait_for(llm.ainvoke(prompt), timeout=5.0)
                         gemini_query = response.content.strip().replace("`", "")

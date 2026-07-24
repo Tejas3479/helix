@@ -3,7 +3,7 @@
     "status": "nominal",
     "nodes": 24,
     "latency": 50,
-    "throughput": 1295,
+    "throughput": 1300,
     "activeIncident": null,
     "activeNode": null,
     "cost": 2500,
@@ -14,146 +14,146 @@
     "nodeMetrics": [
       {
         "idx": 0,
-        "cpu": 12,
-        "mem": 75,
+        "cpu": 13,
+        "mem": 74,
         "status": "healthy"
       },
       {
         "idx": 1,
-        "cpu": 13,
-        "mem": 76,
-        "status": "healthy"
-      },
-      {
-        "idx": 2,
         "cpu": 14,
-        "mem": 77,
-        "status": "healthy"
-      },
-      {
-        "idx": 3,
-        "cpu": 15,
-        "mem": 78,
-        "status": "healthy"
-      },
-      {
-        "idx": 4,
-        "cpu": 16,
-        "mem": 79,
-        "status": "healthy"
-      },
-      {
-        "idx": 5,
-        "cpu": 17,
-        "mem": 80,
-        "status": "healthy"
-      },
-      {
-        "idx": 6,
-        "cpu": 18,
-        "mem": 81,
-        "status": "healthy"
-      },
-      {
-        "idx": 7,
-        "cpu": 19,
-        "mem": 82,
-        "status": "healthy"
-      },
-      {
-        "idx": 8,
-        "cpu": 20,
-        "mem": 83,
-        "status": "healthy"
-      },
-      {
-        "idx": 9,
-        "cpu": 21,
-        "mem": 84,
-        "status": "healthy"
-      },
-      {
-        "idx": 10,
-        "cpu": 22,
-        "mem": 85,
-        "status": "healthy"
-      },
-      {
-        "idx": 11,
-        "cpu": 23,
-        "mem": 86,
-        "status": "healthy"
-      },
-      {
-        "idx": 12,
-        "cpu": 24,
-        "mem": 87,
-        "status": "healthy"
-      },
-      {
-        "idx": 13,
-        "cpu": 25,
-        "mem": 88,
-        "status": "healthy"
-      },
-      {
-        "idx": 14,
-        "cpu": 26,
-        "mem": 89,
-        "status": "healthy"
-      },
-      {
-        "idx": 15,
-        "cpu": 12,
-        "mem": 90,
-        "status": "healthy"
-      },
-      {
-        "idx": 16,
-        "cpu": 13,
-        "mem": 91,
-        "status": "healthy"
-      },
-      {
-        "idx": 17,
-        "cpu": 14,
-        "mem": 92,
-        "status": "healthy"
-      },
-      {
-        "idx": 18,
-        "cpu": 15,
-        "mem": 93,
-        "status": "healthy"
-      },
-      {
-        "idx": 19,
-        "cpu": 16,
-        "mem": 94,
-        "status": "healthy"
-      },
-      {
-        "idx": 20,
-        "cpu": 17,
         "mem": 75,
         "status": "healthy"
       },
       {
-        "idx": 21,
-        "cpu": 18,
+        "idx": 2,
+        "cpu": 15,
         "mem": 76,
         "status": "healthy"
       },
       {
-        "idx": 22,
-        "cpu": 19,
+        "idx": 3,
+        "cpu": 16,
         "mem": 77,
         "status": "healthy"
       },
       {
-        "idx": 23,
-        "cpu": 20,
+        "idx": 4,
+        "cpu": 17,
         "mem": 78,
+        "status": "healthy"
+      },
+      {
+        "idx": 5,
+        "cpu": 18,
+        "mem": 79,
+        "status": "healthy"
+      },
+      {
+        "idx": 6,
+        "cpu": 19,
+        "mem": 80,
+        "status": "healthy"
+      },
+      {
+        "idx": 7,
+        "cpu": 20,
+        "mem": 81,
+        "status": "healthy"
+      },
+      {
+        "idx": 8,
+        "cpu": 21,
+        "mem": 82,
+        "status": "healthy"
+      },
+      {
+        "idx": 9,
+        "cpu": 22,
+        "mem": 83,
+        "status": "healthy"
+      },
+      {
+        "idx": 10,
+        "cpu": 23,
+        "mem": 84,
+        "status": "healthy"
+      },
+      {
+        "idx": 11,
+        "cpu": 24,
+        "mem": 85,
+        "status": "healthy"
+      },
+      {
+        "idx": 12,
+        "cpu": 25,
+        "mem": 86,
+        "status": "healthy"
+      },
+      {
+        "idx": 13,
+        "cpu": 26,
+        "mem": 87,
+        "status": "healthy"
+      },
+      {
+        "idx": 14,
+        "cpu": 27,
+        "mem": 88,
+        "status": "healthy"
+      },
+      {
+        "idx": 15,
+        "cpu": 13,
+        "mem": 89,
+        "status": "healthy"
+      },
+      {
+        "idx": 16,
+        "cpu": 14,
+        "mem": 90,
+        "status": "healthy"
+      },
+      {
+        "idx": 17,
+        "cpu": 15,
+        "mem": 91,
+        "status": "healthy"
+      },
+      {
+        "idx": 18,
+        "cpu": 16,
+        "mem": 92,
+        "status": "healthy"
+      },
+      {
+        "idx": 19,
+        "cpu": 17,
+        "mem": 93,
+        "status": "healthy"
+      },
+      {
+        "idx": 20,
+        "cpu": 18,
+        "mem": 74,
+        "status": "healthy"
+      },
+      {
+        "idx": 21,
+        "cpu": 19,
+        "mem": 75,
+        "status": "healthy"
+      },
+      {
+        "idx": 22,
+        "cpu": 20,
+        "mem": 76,
+        "status": "healthy"
+      },
+      {
+        "idx": 23,
+        "cpu": 21,
+        "mem": 77,
         "status": "healthy"
       },
       {
