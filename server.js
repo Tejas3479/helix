@@ -43,21 +43,21 @@ let redisClient = null;
 try {
     const redis = require('redis');
     redisClient = redis.createClient({
-        url: 'redis://localhost:6379',
+        url: process.env.REDIS_URL || 'redis://localhost:6379',
         socket: { connectTimeout: 1000 }
     });
-    redisClient.on('error', (err) => {
-        // Suppress print spam on offline
+    redisClient.on('error', () => {
+        // Suppress connection error spam
     });
     redisClient.connect()
-        .then(() => console.log('[REDIS] Connected successfully to redis://localhost:6379'))
-        .catch(err => {
+        .then(() => console.log('[CACHE] Redis connected successfully.'))
+        .catch(() => {
             redisClient = null;
-            console.log('[REDIS] Bypassed (offline/fallback active):', err.message);
+            console.log('[CACHE] Using High-Performance In-Memory Cache (Redis offline).');
         });
 } catch (e) {
     redisClient = null;
-    console.log('[REDIS] Bypassed (offline/fallback active):', e.message);
+    console.log('[CACHE] Using High-Performance In-Memory Cache (Standalone mode).');
 }
 
 // Cleanup stale rate limit entries every 60 seconds to prevent memory leak

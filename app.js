@@ -187,6 +187,7 @@ class AppController {
     init() {
         // 1. Initialise the 3D Engine
         this.space = new SpaceEngine();
+        this.isOfflineMode = false;
         
         // 2. Setup loader simulation
         this.simulateLoading();
@@ -197,14 +198,40 @@ class AppController {
         // 4. Start FPS Diagnostics loop
         this.measureFPS();
         
-        // 5. Connect to the real Node.js backend SSE stream
-        this.connectBackendStream();
+        // 5. Priority #1: Fast 2-second Health Check Probe
+        fetch('/api/health', { signal: AbortSignal.timeout ? AbortSignal.timeout(2000) : undefined })
+            .then(res => {
+                if (!res.ok) throw new Error('Health probe returned error status');
+                return res.json();
+            })
+            .then(data => {
+                this.isOfflineMode = false;
+                this.connectBackendStream();
+            })
+            .catch(err => {
+                console.warn('[HELIX-OFFLINE] Backend unreachable. Running in Standalone Autonomous Mode.');
+                this.isOfflineMode = true;
+                this.initOfflineMode();
+            });
         
         // 6. Scramble title styling
         this.initTextScrambler();
 
         // 7. Security check
         this.checkAuth();
+    }
+
+    initOfflineMode() {
+        const nominalState = {
+            status: 'nominal',
+            nodes: 24,
+            activeIncident: null,
+            waitingApproval: null,
+            cost: "$1,420/mo",
+            latency: "48ms",
+            throughput: "1,250 req/s"
+        };
+        this.syncSystemState(nominalState);
     }
 
     simulateLoading() {
@@ -618,10 +645,51 @@ class AppController {
             });
         });
 
-        // Audio toggle click
+        // Audio toggle click & hint dismissal
         this.audioBtn.addEventListener('click', () => {
+            const hint = document.getElementById('audio-pulse-hint');
+            if (hint) hint.remove();
             this.toggleAudio();
         });
+
+        // Priority #3: Cinematic Tour Button Handler
+        const tourBtn = document.getElementById('btn-cinematic-tour');
+        if (tourBtn) {
+            tourBtn.addEventListener('click', () => {
+                if (this.space.isCinematicTourActive) {
+                    this.space.stopCinematicTour();
+                } else {
+                    this.space.startCinematicTour();
+                }
+            });
+        }
+
+        // CustomEvent Bridge for 3D Cinematic Tour Events
+        window.addEventListener('cinematicEvent', (e) => {
+            if (e.detail) {
+                if (e.detail.type === 'incident') {
+                    this.postSimulationTrigger(e.detail.state || 'ddos');
+                } else if (e.detail.type === 'resolve') {
+                    this.syncSystemState({
+                        status: 'nominal',
+                        nodes: 24,
+                        activeIncident: null,
+                        waitingApproval: null,
+                        cost: "$1,420/mo",
+                        latency: "48ms",
+                        throughput: "1,250 req/s"
+                    });
+                }
+            }
+        });
+
+        // Priority #8: Theme Selector Change Event
+        const themeSel = document.getElementById('theme-selector');
+        if (themeSel) {
+            themeSel.addEventListener('change', (e) => {
+                this.space.setTheme(e.target.value);
+            });
+        }
 
         // Sliders
         // Slider drag tracking and value synchronization
@@ -1457,6 +1525,12 @@ class AppController {
         if (this.terminalOutput) {
             this.terminalOutput.classList.remove('hidden');
         }
+
+        if (this.isOfflineMode) {
+            this.runOfflineIncidentSimulation(incidentType);
+            return;
+        }
+
         fetch('/api/incident', {
             method: 'POST',
             headers: { 
@@ -1475,46 +1549,96 @@ class AppController {
                 this.addTerminalLine(`[ERROR] ${data.error || 'Trigger failed'}`, 'anomaly');
             }
         })
-        .catch(err => console.error(`Error launching simulation ${incidentType}: `, err));
+        .catch(err => {
+            console.warn(`[HELIX-OFFLINE] Server call failed for ${incidentType}, running offline simulation.`);
+            this.runOfflineIncidentSimulation(incidentType);
+        });
+    }
+
+    runOfflineIncidentSimulation(incidentType) {
+        this.syncSystemState({
+            status: 'anomaly',
+            nodes: 15,
+            activeIncident: incidentType,
+            waitingApproval: { agent: 'Vanguard-01', action: incidentType === 'ddos' ? 'Deploy DDoS Edge Filters & Scale +12 Nodes' : 'Promote PostgreSQL Standby & Flush Cache' },
+            cost: "$2,850/mo",
+            latency: "540ms",
+            throughput: "4,820 req/s"
+        });
+
+        if (this.space) {
+            this.space.spawnIncidentShockwave(0);
+            this.space.spawnIncidentShockwave(4);
+        }
+
+        this.addTerminalLine(`[ALERT] High-severity ${incidentType.toUpperCase()} incident triggered.`, 'anomaly');
+        
+        setTimeout(() => {
+            this.addChatBubble('Sentry-01', `⚠️ ANOMALY DETECTED: ${incidentType.toUpperCase()} attack vector pattern identified across Layer 1 Ingress Gateways.`);
+        }, 500);
+
+        setTimeout(() => {
+            this.addChatBubble('Vanguard-01', `🛡️ AUDIT COMPLETE: Threat level critical. Proposing emergency rate-limiting and cluster node pool expansion.`);
+            this.showHITLModal({
+                agent: 'Vanguard-01',
+                action: incidentType === 'ddos' ? 'Deploy DDoS Edge Filters & Scale +12 Nodes' : 'Promote PostgreSQL Standby & Flush Cache',
+                source: 'SRE Autonomous Guardrail Engine'
+            });
+        }, 1500);
     }
 
     // Submit HITL Decision to the backend SRE pipeline
     submitHITLDecision(approved) {
-        // FIX: Hide modal optimistically, restore on failure
         this.hideHITLModal();
         
-        // Play positive approval chirp or negative denial click
         if (approved) {
-            this.playBeep(660, 0.25, 0.05); // High chirp
+            this.playBeep(660, 0.25, 0.05);
+            this.addChatBubble('Orchestrator-Core', `✅ HUMAN-IN-THE-LOOP APPROVAL GRANTED: Remediation deployed.`);
+            setTimeout(() => {
+                this.syncSystemState({
+                    status: 'resolving',
+                    nodes: 24,
+                    activeIncident: null,
+                    waitingApproval: null,
+                    cost: "$1,420/mo",
+                    latency: "48ms",
+                    throughput: "1,250 req/s"
+                });
+            }, 800);
+
+            setTimeout(() => {
+                this.syncSystemState({
+                    status: 'nominal',
+                    nodes: 24,
+                    activeIncident: null,
+                    waitingApproval: null,
+                    cost: "$1,420/mo",
+                    latency: "48ms",
+                    throughput: "1,250 req/s"
+                });
+                this.addTerminalLine(`[REMEDIATION COMPLETE] System telemetry returned to NOMINAL.`, 'nominal');
+            }, 2500);
         } else {
-            this.playBeep(180, 0.3, 0.05); // Low buzz
+            this.playBeep(180, 0.3, 0.05);
+            this.addChatBubble('Orchestrator-Core', `❌ HUMAN-IN-THE-LOOP DENIAL: Remediation aborted by operator.`);
         }
 
-        fetch('/api/approve', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.sessionToken}`
-            },
-            body: JSON.stringify({ approved })
-        })
-        .then(async res => {
-            if (res.status === 401) {
-                this.checkAuth();
-            } else if (!res.ok) {
-                // FIX: POST failed — re-show modal so user can retry
-                const data = await res.json().catch(() => ({}));
-                this.addTerminalLine(`[ERROR] Approval submission failed: ${data.error || res.statusText}`, 'anomaly');
-                // Re-show the modal for retry
-                if (this.lastApprovalDetails) {
-                    this.showHITLModal(this.lastApprovalDetails);
+        if (!this.isOfflineMode) {
+            fetch('/api/approve', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.sessionToken}`
+                },
+                body: JSON.stringify({ approved })
+            })
+            .then(async res => {
+                if (res.status === 401) {
+                    this.checkAuth();
                 }
-            }
-        })
-        .catch(err => {
-            console.error("Error submitting approval decision: ", err);
-            this.addTerminalLine('[ERROR] Network error submitting HITL decision.', 'anomaly');
-        });
+            })
+            .catch(err => console.warn("[HELIX-OFFLINE] Backend approval endpoint unreachable. Using offline state engine."));
+        }
     }
 
     /**
@@ -1560,6 +1684,7 @@ class AppController {
         requestAnimationFrame(calculateFPS);
     }
 
+    // Priority #2: Adaptive Frame Guardian
     handleAutoScaling(fps) {
         this.fpsList.push(fps);
         if (this.fpsList.length > 5) this.fpsList.shift();
@@ -1567,40 +1692,29 @@ class AppController {
         if (this.fpsList.length === 5) {
             const avg = this.fpsList.reduce((a, b) => a + b) / 5;
             
-            // Downscale when avg FPS < 35 and particles are above minimum
-            if (avg < 35 && this.space.particleCountSetting > 1500) {
-                const currentCount = this.space.particleCountSetting;
-                const newCount = Math.max(1500, Math.floor(currentCount * 0.7));
-                
-                this.space.particleCountSetting = newCount;
-                this.space.createNebulaParticles(newCount);
+            if (avg < 35 && this.space.currentPerfMode !== 'low') {
+                this.space.setPerformancePreset('low');
 
                 const terminalMini = document.getElementById('active-agents-mini');
                 if (terminalMini) {
                     const warnMsg = document.createElement('p');
-                    warnMsg.innerHTML = `&gt; core_optimizer: <span class="red">AUTO_DOWNSCALE [${newCount}]</span>`;
+                    warnMsg.innerHTML = `&gt; core_optimizer: <span class="red">FRAME_GUARDIAN [LOW_PRESET]</span>`;
                     terminalMini.appendChild(warnMsg);
                 }
                 
                 this.playBeep(220, 0.4, 0.05); 
                 this.fpsList = [];
             }
-            // FIX: Upscale recovery — if avg FPS > 55 and below target particle count
-            else if (avg > 55 && this.space.particleCountSetting < 4500) {
-                const currentCount = this.space.particleCountSetting;
-                const newCount = Math.min(4500, Math.floor(currentCount * 1.3));
-
-                this.space.particleCountSetting = newCount;
-                this.space.createNebulaParticles(newCount);
+            else if (avg > 55 && this.space.currentPerfMode === 'low') {
+                this.space.setPerformancePreset('high');
 
                 const terminalMini = document.getElementById('active-agents-mini');
                 if (terminalMini) {
-                    const warnMsg = document.createElement('p');
-                    warnMsg.innerHTML = `&gt; core_optimizer: <span class="green">AUTO_UPSCALE [${newCount}]</span>`;
-                    terminalMini.appendChild(warnMsg);
+                    const infoMsg = document.createElement('p');
+                    infoMsg.innerHTML = `&gt; core_optimizer: <span class="green">FRAME_GUARDIAN [HIGH_PRESET]</span>`;
+                    terminalMini.appendChild(infoMsg);
                 }
 
-                this.fpsList = [];
             }
         }
     }

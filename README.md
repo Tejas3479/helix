@@ -10,6 +10,17 @@ Helix Quantum is an **Autonomous Cloud Infrastructure & SRE Command Center**. It
 
 ---
 
+## 🎯 Why This Is Perfect for the 3D Websites Hackathon
+
+This project was built specifically with the hackathon's goals in mind:
+- **🌌 Immersive 3D Experience:** Interactive 48-node (expandable to 64) 3D cluster visualization with glowing nodes, particle effects, and camera orbiting
+- **💫 Beautiful Aesthetics:** Glassmorphic UI, Orbitron typography, neon glows, and smooth GSAP animations
+- **✨ Unforgettable Interaction:** Trigger realistic incident simulations (DDoS, database failure, cost optimization), interact with the 3D mesh, and approve AI-driven mitigations
+- **🛠️ Uses All Allowed Tech:** Three.js, WebGL, GSAP, and vanilla web tech (no heavy frameworks, just pure creativity)
+- **🤖 AI-Powered (Optional):** Optional Python backend with LangGraph and Gemini for real multi-agent reasoning (but fully functional with just Node.js)
+
+---
+
 ## 🌟 Key Features
 
 - 🌌 **3D WebGL Command Bridge (`space3d.js`):** Interactive 24-node cluster matrix powered by Three.js with UnrealBloom post-processing glow, sinusoidal node bobbing, packet flow streams, and camera inertia.

@@ -55,6 +55,14 @@
         <span>BACK TO CLUSTER</span>
     </button>
 
+    <!-- WebGL Context Loss Restoration Overlay -->
+    <div id="webgl-context-overlay" class="webgl-context-overlay hidden">
+        <div class="context-overlay-content">
+            <span class="context-spinner">⚙️</span>
+            <p>🖥️ REINITIALIZING 3D ENGINE...</p>
+        </div>
+    </div>
+
     <!-- UI Overlay Header / Navigation -->
     <header id="hud-header">
         <div class="logo-area">
@@ -69,7 +77,19 @@
         </nav>
         <!-- Audio and Dimension HUD Controls -->
         <div class="quick-controls">
+            <button id="btn-cinematic-tour" class="control-btn tour-btn" title="Start 3D Cinematic Tour" aria-label="Start Automated 3D Cinematic Tour">
+                <span class="btn-icon">▶️</span>
+                <span class="btn-text">TOUR</span>
+            </button>
+            <div class="theme-selector-wrapper">
+                <select id="theme-selector" class="theme-select" title="Change WebGL Theme Palette" aria-label="WebGL Theme Palette Selector">
+                    <option value="nebula">🌌 NEBULA</option>
+                    <option value="solar">☀️ SOLAR</option>
+                    <option value="violet">🔮 VIOLET</option>
+                </select>
+            </div>
             <button id="audio-toggle" class="control-btn" title="Toggle Sound" aria-label="Toggle Dashboard Audio Synthesizer">
+                <span id="audio-pulse-hint" class="audio-hint-badge">3D AUDIO</span>
                 <div class="audio-equalizer">
                     <span class="bar"></span>
                     <span class="bar"></span>
