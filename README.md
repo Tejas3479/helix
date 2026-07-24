@@ -63,7 +63,7 @@ pip install -r requirements.txt
 ```
 
 ### 3. Environment Setup (Optional)
-Set the Admin Authorization PIN and optional Gemini AI API key (defaults to `gemini-3.6-flash` model):
+Set the Admin Authorization PIN (default is `1234` for development) and optional Gemini AI API key (defaults to `gemini-3.6-flash` model):
 ```bash
 # Windows PowerShell
 $env:ADMIN_PIN="1234"
